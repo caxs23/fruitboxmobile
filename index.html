@@ -186,13 +186,13 @@
     }
     .fullscreen-btn {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 6px 10px;
+      top: 8px;
+      right: 8px;
+      padding: 4px 6px;
       background: var(--primary-color);
       color: #fff;
       border-radius: 6px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
       z-index: 10;
     }
@@ -282,6 +282,24 @@
       let selStart = null, selEnd = null;
       let cells = [];
       let hintCount = 3;
+
+      // Web Audio API for "띠링" sound
+      function playSound() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1000, ctx.currentTime); // 1000 Hz for a chime-like sound
+        gainNode.gain.setValueAtTime(0.5, ctx.currentTime); // Volume
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2); // Quick fade-out
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.2); // Sound duration: 0.2 seconds
+      }
 
       function createBoard() {
         board = Array.from({length: config.rows}, () => Array.from({length: config.cols}, () => randWeighted()));
@@ -477,6 +495,7 @@
           console.log('Invalid selection: sum not 10 or no cells selected');
           return false;
         }
+        playSound(); // Play "띠링" sound
         for(let r = info.r1; r <= info.r2; r++) {
           for(let c = info.c1; c <= info.c2; c++) {
             board[r][c] = 0;
