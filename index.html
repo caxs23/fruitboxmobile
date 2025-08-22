@@ -1,0 +1,654 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Fruit Box (사과 상자) - 모바일 버전</title>
+  <style>
+    :root {
+      --cell-size: 10vw; /* Dynamic cell size for mobile */
+      --gap: 4px; /* Smaller gap for mobile */
+      --cols: 7;
+      --rows: 6;
+      --primary-color: #2b6df6;
+      --success-color: #10b981;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: Inter, Noto Sans KR, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f7fb;
+      margin: 0;
+      padding: 10px;
+      overscroll-behavior: none; /* Prevent pull-to-refresh */
+    }
+    .wrap {
+      width: 100%;
+      max-width: 500px; /* Cap width for larger phones */
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 4px 16px rgba(20,30,60,0.1);
+      width: 100%;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), var(--cell-size));
+      grid-auto-rows: var(--cell-size);
+      gap: var(--gap);
+      padding: 6px;
+      background: linear-gradient(180deg, #eef4ff, #fff);
+      border-radius: 10px;
+      position: relative;
+      touch-action: none; /* Prevent default touch actions */
+    }
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #fff, #f2f6ff);
+      font-weight: 700;
+      font-size: 4vw; /* Responsive font size */
+      user-select: none;
+      cursor: pointer;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.04) inset;
+      transition: transform 0.12s ease, background 0.2s ease;
+    }
+    .cell.fruit {
+      background: linear-gradient(180deg, #ffe9e6, #fff1ea);
+      color: #8b1d12;
+    }
+    .cell.orange {
+      background: linear-gradient(180deg, #fff4e0, #fff9f0);
+      color: #8b4a00;
+    }
+    .cell.selected {
+      outline: 3px solid rgba(80,160,255,0.35);
+      transform: scale(1.05);
+    }
+    .cell.touched {
+      transform: scale(1.1); /* Visual feedback for touch */
+    }
+    .cell.removing {
+      animation: pop 0.18s ease forwards;
+    }
+    @keyframes pop {
+      to { transform: scale(0.2); opacity: 0; }
+    }
+    .info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .score {
+      font-size: 6vw; /* Responsive font size */
+      font-weight: 800;
+      color: var(--primary-color);
+    }
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .btn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 0;
+      background: var(--primary-color);
+      color: #fff;
+      font-weight: 700;
+      font-size: 3.5vw;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      min-height: 44px; /* Ensure touch target size */
+    }
+    .btn:hover {
+      background: #1e5de0;
+    }
+    .btn.success {
+      background: var(--success-color);
+    }
+    .btn.success:hover {
+      background: #0d9f6e;
+    }
+    .btn:disabled {
+      background: #6b7280;
+      cursor: not-allowed;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 3vw;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+    .hint {
+      background: #fff7cc;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 3vw;
+    }
+    .footer {
+      margin-top: 8px;
+      font-size: 3vw;
+      color: #374151;
+    }
+    .small {
+      font-size: 3vw;
+      color: #6b7280;
+    }
+    .difficulty-select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font-size: 3.5vw;
+      width: 100%;
+    }
+    .game-over {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #fff;
+      border-radius: 10px;
+      animation: fadeIn 0.3s ease;
+      padding: 10px;
+      text-align: center;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .fullscreen-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 8px;
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 3vw;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      :root {
+        --cell-size: 12vw; /* Slightly larger cells for smaller screens */
+      }
+      .wrap {
+        max-width: 100%;
+      }
+      .cell {
+        font-size: 5vw;
+      }
+      .score {
+        font-size: 7vw;
+      }
+      .btn, .difficulty-select {
+        font-size: 4vw;
+      }
+      .hint, .small, .footer {
+        font-size: 3.5vw;
+      }
+    }
+    @media (max-width: 400px) {
+      :root {
+        --cell-size: 14vw; /* Even larger for very small screens */
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="fullscreen-btn" id="fullscreenBtn">전체 화면</button>
+  <div class="wrap">
+    <div class="panel">
+      <div style="font-weight:800;font-size:5vw;margin-bottom:8px">Fruit Box (사과 상자)</div>
+      <div class="small" style="margin-bottom:8px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
+      <div id="board" class="board" draggable="false"></div>
+    </div>
+
+    <div class="panel info">
+      <div>
+        <div class="small">점수</div>
+        <div id="score" class="score">0</div>
+      </div>
+      <div>
+        <div class="small">최고 점수</div>
+        <div id="highScore" class="score">0</div>
+      </div>
+      <div class="meta">
+        <div class="small">난이도</div>
+        <select id="difficulty" class="difficulty-select">
+          <option value="easy">쉬움 (8x6)</option>
+          <option value="medium" selected>보통 (7x6)</option>
+          <option value="hard">어려움 (6x5)</option>
+        </select>
+      </div>
+      <div class="meta">
+        <div class="small">규칙 요약</div>
+        <div class="hint">사각형 선택 → 내부 합이 <strong>10</strong>이면 제거. 터진 과일 1개당 +1점.</div>
+      </div>
+      <div class="controls">
+        <button id="restartBtn" class="btn success">재시작</button>
+        <button id="hintBtn" class="btn">힌트 (3)</button>
+      </div>
+      <div class="footer">
+        <div class="small">모바일: 터치로 시작 지점 터치 → 끝 지점 터치</div>
+        <div style="margin-top:6px" class="small">H키로 힌트 (키보드 지원 시)</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const difficulties = {
+        easy: { cols: 8, rows: 6 },
+        medium: { cols: 7, rows: 6 },
+        hard: { cols: 6, rows: 5 }
+      };
+      let config = difficulties.medium;
+      const boardEl = document.getElementById('board');
+      const scoreEl = document.getElementById('score');
+      const highScoreEl = document.getElementById('highScore');
+      const restartBtn = document.getElementById('restartBtn');
+      const hintBtn = document.getElementById('hintBtn');
+      const difficultyEl = document.getElementById('difficulty');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+      let board = [];
+      let score = 0;
+      let highScore = localStorage.getItem('fruitBoxHighScore') ? parseInt(localStorage.getItem('fruitBoxHighScore'), 10) : 0;
+      let selecting = false;
+      let selStart = null, selEnd = null;
+      let cells = [];
+      let hintCount = 3;
+
+      function createBoard() {
+        board = Array.from({length: config.rows}, () => Array.from({length: config.cols}, () => randWeighted()));
+        for (let r = 0; r < config.rows; r++) {
+          for (let c = 0; c < config.cols; c++) {
+            if (board[r][c] === 9) {
+              const neighbors = [
+                { r: r - 1, c: c },
+                { r: r + 1, c: c },
+                { r: r, c: c - 1 },
+                { r: r, c: c + 1 }
+              ].filter(n => n.r >= 0 && n.r < config.rows && n.c >= 0 && n.c < config.cols);
+              const hasOne = neighbors.some(n => board[n.r][n.c] === 1);
+              if (!hasOne && neighbors.length > 0) {
+                const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                board[randomNeighbor.r][randomNeighbor.c] = 1;
+              }
+            }
+          }
+        }
+        while(totalSum(board) % 10 !== 0) {
+          const r = Math.floor(Math.random() * config.rows);
+          const c = Math.floor(Math.random() * config.cols);
+          const neighborsOf9 = [];
+          for (let r2 = 0; r2 < config.rows; r2++) {
+            for (let c2 = 0; c2 < config.cols; c2++) {
+              if (board[r2][c2] === 9) {
+                neighborsOf9.push(
+                  ...[{ r: r2 - 1, c: c2 }, { r: r2 + 1, c: c2 }, { r: r2, c: c2 - 1 }, { r: r2, c: c2 + 1 }]
+                    .filter(n => n.r >= 0 && n.r < config.rows && n.c >= 0 && n.c < config.cols && board[n.r][n.c] === 1)
+                );
+              }
+            }
+          }
+          if (board[r][c] !== 9 && !neighborsOf9.some(n => n.r === r && n.c === c)) {
+            board[r][c] = randWeighted();
+          }
+        }
+      }
+
+      function randWeighted() {
+        const rand = Math.random();
+        if (rand < 0.7) {
+          return Math.floor(Math.random() * 4) + 1; // 1-4
+        } else {
+          return Math.floor(Math.random() * 5) + 5; // 5-9
+        }
+      }
+
+      function totalSum(b) { return b.flat().reduce((a, x) => a + (x || 0), 0); }
+
+      function render() {
+        document.documentElement.style.setProperty('--cols', config.cols);
+        document.documentElement.style.setProperty('--rows', config.rows);
+        boardEl.innerHTML = '';
+        cells = [];
+        for(let r = 0; r < config.rows; r++) {
+          for(let c = 0; c < config.cols; c++) {
+            const val = board[r][c];
+            const div = document.createElement('div');
+            div.className = 'cell' + (val ? ' fruit' : '');
+            if(val) {
+              if(val >= 7) div.classList.add('orange');
+              div.textContent = val;
+            } else {
+              div.style.visibility = 'hidden';
+            }
+            div.dataset.r = r;
+            div.dataset.c = c;
+            boardEl.appendChild(div);
+            cells.push(div);
+          }
+        }
+      }
+
+      function updateScore() {
+        scoreEl.textContent = score;
+        if(score > highScore) {
+          highScore = score;
+          localStorage.setItem('fruitBoxHighScore', highScore);
+          highScoreEl.textContent = highScore;
+        }
+      }
+
+      function updateHighScore() { highScoreEl.textContent = highScore; }
+
+      function checkBoardCleared() {
+        return board.every(row => row.every(cell => cell === 0));
+      }
+
+      function checkNoMovesLeft() {
+        for(let r1 = 0; r1 < config.rows; r1++) {
+          for(let r2 = r1; r2 < config.rows; r2++) {
+            for(let c1 = 0; c1 < config.cols; c1++) {
+              for(let c2 = c1; c2 < config.cols; c2++) {
+                let s = 0, cnt = 0;
+                for(let r = r1; r <= r2; r++) {
+                  for(let c = c1; c <= c2; c++) {
+                    s += board[r][c] || 0;
+                    if(board[r][c]) cnt++;
+                  }
+                }
+                if(s === 10 && cnt > 0) {
+                  return false;
+                }
+              }
+            }
+          }
+        }
+        return true;
+      }
+
+      function showGameClear() {
+        if(score > highScore) {
+          highScore = score;
+          localStorage.setItem('fruitBoxHighScore', highScore);
+          updateHighScore();
+        }
+        const gameClearEl = document.createElement('div');
+        gameClearEl.className = 'game-over';
+        gameClearEl.innerHTML = `
+          <h2 style="font-size: 6vw; margin-bottom: 4vw;">축하합니다! 클리어!</h2>
+          <div style="font-size: 4vw;">최종 점수: ${score}</div>
+          <div style="font-size: 4vw;">최고 점수: ${highScore}</div>
+          <button class="btn success restart-game" style="margin-top: 4vw; font-size: 4vw;">다시 시작</button>
+        `;
+        boardEl.appendChild(gameClearEl);
+        const restartButton = gameClearEl.querySelector('.restart-game');
+        restartButton.addEventListener('click', () => {
+          gameClearEl.remove();
+          init();
+        });
+      }
+
+      function showGameOver() {
+        if(score > highScore) {
+          highScore = score;
+          localStorage.setItem('fruitBoxHighScore', highScore);
+          updateHighScore();
+        }
+        const gameOverEl = document.createElement('div');
+        gameOverEl.className = 'game-over';
+        gameOverEl.innerHTML = `
+          <h2 style="font-size: 6vw; margin-bottom: 4vw;">게임 오버</h2>
+          <div style="font-size: 4vw;">더 이상 합이 10이 되는 선택이 없습니다.</div>
+          <div style="font-size: 4vw;">최종 점수: ${score}</div>
+          <div style="font-size: 4vw;">최고 점수: ${highScore}</div>
+          <button class="btn success restart-game" style="margin-top: 4vw; font-size: 4vw;">다시 시작</button>
+        `;
+        boardEl.appendChild(gameOverEl);
+        const restartButton = gameOverEl.querySelector('.restart-game');
+        restartButton.addEventListener('click', () => {
+          gameOverEl.remove();
+          init();
+        });
+      }
+
+      function getCellFromEvent(e) {
+        const target = e.target.closest('.cell');
+        if(!target) return null;
+        return { r: parseInt(target.dataset.r, 10), c: parseInt(target.dataset.c, 10), el: target };
+      }
+
+      function setSelection(s, e) {
+        const r1 = Math.min(s.r, e.r), r2 = Math.max(s.r, e.r);
+        const c1 = Math.min(s.c, e.c), c2 = Math.max(s.c, e.c);
+        cells.forEach(x => x.classList.remove('selected', 'touched'));
+        for(let r = r1; r <= r2; r++) {
+          for(let c = c1; c <= c2; c++) {
+            const idx = r * config.cols + c;
+            cells[idx].classList.add('selected');
+          }
+        }
+      }
+
+      function computeSelectionSum(s, e) {
+        const r1 = Math.min(s.r, e.r), r2 = Math.max(s.r, e.r);
+        const c1 = Math.min(s.c, e.c), c2 = Math.max(s.c, e.c);
+        let sum = 0, count = 0;
+        for(let r = r1; r <= r2; r++) {
+          for(let c = c1; c <= c2; c++) {
+            const val = board[r][c] || 0;
+            sum += val;
+            if(val) count++;
+          }
+        }
+        return { sum, count, r1, r2, c1, c2 };
+      }
+
+      function removeSelection(s, e) {
+        const info = computeSelectionSum(s, e);
+        if(info.sum !== 10) return false;
+        for(let r = info.r1; r <= info.r2; r++) {
+          for(let c = info.c1; c <= info.c2; c++) {
+            board[r][c] = 0;
+            const el = cells[r * config.cols + c];
+            el.classList.add('removing');
+          }
+        }
+        setTimeout(() => {
+          render();
+          if(checkBoardCleared()) {
+            showGameClear();
+          } else if(checkNoMovesLeft()) {
+            showGameOver();
+          }
+        }, 180);
+        score += info.count;
+        updateScore();
+        return true;
+      }
+
+      function provideHint() {
+        if(hintCount <= 0) {
+          alert('더 이상 힌트를 사용할 수 없습니다!');
+          return;
+        }
+        let found = false;
+        for(let r1 = 0; r1 < config.rows && !found; r1++) {
+          for(let r2 = r1; r2 < config.rows && !found; r2++) {
+            for(let c1 = 0; c1 < config.cols; c1++) {
+              for(let c2 = c1; c2 < config.cols && !found; c2++) {
+                let s = 0, cnt = 0;
+                for(let r = r1; r <= r2; r++) {
+                  for(let c = c1; c <= c2; c++) {
+                    s += board[r][c] || 0;
+                    if(board[r][c]) cnt++;
+                  }
+                }
+                if(s === 10 && cnt > 0) {
+                  cells.forEach(x => x.classList.remove('selected', 'touched'));
+                  for(let r = r1; r <= r2; r++) {
+                    for(let c = c1; c <= c2; c++) {
+                      cells[r * config.cols + c].classList.add('selected');
+                    }
+                  }
+                  hintCount--;
+                  hintBtn.textContent = `힌트 (${hintCount})`;
+                  hintBtn.disabled = hintCount === 0;
+                  found = true;
+                }
+              }
+            }
+          }
+        }
+        if(!found) {
+          alert('힌트 없음: 합이 10인 직사각형을 찾을 수 없습니다.');
+          showGameOver();
+        }
+      }
+
+      boardEl.addEventListener('touchstart', (ev) => {
+        ev.preventDefault();
+        const touch = ev.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const cell = target && target.closest('.cell') ? { r: parseInt(target.dataset.r, 10), c: parseInt(target.dataset.c, 10), el: target } : null;
+        if(!cell) return;
+        selecting = true;
+        selStart = { r: cell.r, c: cell.c };
+        selEnd = { r: cell.r, c: cell.c };
+        cell.el.classList.add('touched');
+        setSelection(selStart, selEnd);
+      }, { passive: false });
+
+      boardEl.addEventListener('touchmove', (ev) => {
+        ev.preventDefault();
+        if(!selecting) return;
+        const touch = ev.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const cell = target && target.closest('.cell') ? { r: parseInt(target.dataset.r, 10), c: parseInt(target.dataset.c, 10), el: target } : null;
+        if(!cell) return;
+        selEnd = { r: cell.r, c: cell.c };
+        cells.forEach(x => x.classList.remove('touched'));
+        cell.el.classList.add('touched');
+        setSelection(selStart, selEnd);
+      }, { passive: false });
+
+      boardEl.addEventListener('touchend', (ev) => {
+        if(!selecting) return;
+        selecting = false;
+        const touch = ev.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const cell = target && target.closest('.cell') ? { r: parseInt(target.dataset.r, 10), c: parseInt(target.dataset.c, 10) } : null;
+        if(cell) selEnd = { r: cell.r, c: cell.c };
+        if(selStart && selEnd) {
+          const ok = removeSelection(selStart, selEnd);
+          if(!ok) cells.forEach(x => x.classList.remove('selected', 'touched'));
+        } else {
+          cells.forEach(x => x.classList.remove('selected', 'touched'));
+        }
+      }, { passive: false });
+
+      restartBtn.addEventListener('click', init);
+
+      hintBtn.addEventListener('click', provideHint);
+
+      difficultyEl.addEventListener('change', (e) => {
+        config = difficulties[e.target.value];
+        document.documentElement.style.setProperty('--cols', config.cols);
+        document.documentElement.style.setProperty('--rows', config.rows);
+        init();
+      });
+
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => console.log(err));
+        } else {
+          document.exitFullscreen();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if(e.key.toLowerCase() === 'h') provideHint();
+      });
+
+      function init() {
+        createBoard();
+        render();
+        score = 0;
+        hintCount = 3;
+        updateScore();
+        updateHighScore();
+        hintBtn.textContent = `힌트 (${hintCount})`;
+        hintBtn.disabled = false;
+      }
+
+      init();
+      updateHighScore();
+    })();
+  </script>
+</body>
+</html>
