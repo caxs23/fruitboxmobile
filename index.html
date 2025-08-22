@@ -6,10 +6,10 @@
   <title>Fruit Box (사과 상자) - 모바일 버전</title>
   <style>
     :root {
-      --cell-size: 12vw; /* Adjusted for mobile fit */
-      --gap: 3px; /* Tighter gap */
-      --cols: 6; /* Fixed columns */
-      --rows: 6; /* Default rows (medium) */
+      --cell-size: 10.8vw; /* Reduced by ~10% from 12vw */
+      --gap: 2.7px; /* Reduced by ~10% from 3px */
+      --cols: 6;
+      --rows: 6;
       --primary-color: #2b6df6;
       --success-color: #10b981;
     }
@@ -25,21 +25,21 @@
       min-height: 100vh;
       background: #f5f7fb;
       margin: 0;
-      padding: 10px;
+      padding: 9px;
       overscroll-behavior: none;
     }
     .wrap {
       width: 100%;
-      max-width: 360px; /* Fits most smartphone screens */
+      max-width: 324px; /* Reduced by ~10% from 360px */
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      position: relative; /* Anchor for fullscreen button */
+      gap: 9px;
+      position: relative;
     }
     .panel {
       background: #fff;
-      border-radius: 12px;
-      padding: 10px;
+      border-radius: 10px;
+      padding: 9px;
       box-shadow: 0 4px 16px rgba(20,30,60,0.1);
       width: 100%;
     }
@@ -48,9 +48,9 @@
       grid-template-columns: repeat(var(--cols), var(--cell-size));
       grid-auto-rows: var(--cell-size);
       gap: var(--gap);
-      padding: 5px;
+      padding: 4.5px;
       background: linear-gradient(180deg, #eef4ff, #fff);
-      border-radius: 10px;
+      border-radius: 9px;
       position: relative;
       touch-action: none;
     }
@@ -58,13 +58,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 6px;
+      border-radius: 5.4px;
       background: linear-gradient(180deg, #fff, #f2f6ff);
       font-weight: 700;
-      font-size: 4.5vw;
+      font-size: 4vw;
       user-select: none;
       cursor: pointer;
-      box-shadow: 0 2px 0 rgba(0,0,0,0.04) inset;
+      box-shadow: 0 1.8px 0 rgba(0,0,0,0.04) inset;
       transition: transform 0.12s ease, background 0.2s ease;
     }
     .cell.fruit {
@@ -76,7 +76,7 @@
       color: #8b4a00;
     }
     .cell.selected {
-      outline: 2px solid rgba(80,160,255,0.35);
+      outline: 1.8px solid rgba(80,160,255,0.35);
       transform: scale(1.05);
     }
     .cell.touched {
@@ -91,29 +91,29 @@
     .info {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5.4px;
     }
     .score {
-      font-size: 6.5vw;
+      font-size: 6vw;
       font-weight: 800;
       color: var(--primary-color);
     }
     .meta {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4.5px;
     }
     .btn {
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 7.2px 9px;
+      border-radius: 7.2px;
       border: 0;
       background: var(--primary-color);
       color: #fff;
       font-weight: 700;
-      font-size: 4vw;
+      font-size: 3.8vw;
       cursor: pointer;
       transition: background 0.2s ease;
-      min-height: 48px; /* Larger touch target */
+      min-height: 48px;
     }
     .btn:hover {
       background: #1e5de0;
@@ -130,25 +130,25 @@
     }
     .muted {
       color: #6b7280;
-      font-size: 3.5vw;
+      font-size: 3.2vw;
     }
     .controls {
       display: flex;
-      gap: 6px;
+      gap: 5.4px;
     }
     .hint {
       background: #fff7cc;
-      padding: 6px;
-      border-radius: 8px;
-      font-size: 3.5vw;
+      padding: 5.4px;
+      border-radius: 7.2px;
+      font-size: 3.2vw;
     }
     .footer {
-      margin-top: 6px;
-      font-size: 3.5vw;
+      margin-top: 5.4px;
+      font-size: 3.2vw;
       color: #374151;
     }
     .small {
-      font-size: 3.5vw;
+      font-size: 3.2vw;
       color: #6b7280;
     }
     .game-over {
@@ -163,9 +163,9 @@
       justify-content: center;
       flex-direction: column;
       color: #fff;
-      border-radius: 10px;
+      border-radius: 9px;
       animation: fadeIn 0.3s ease;
-      padding: 10px;
+      padding: 9px;
       text-align: center;
     }
     @keyframes fadeIn {
@@ -174,33 +174,33 @@
     }
     .fullscreen-btn {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 6px 8px;
+      top: 9px;
+      right: 9px;
+      padding: 5.4px 7.2px;
       background: var(--primary-color);
       color: #fff;
-      border-radius: 6px;
-      font-size: 3.5vw;
+      border-radius: 5.4px;
+      font-size: 3.2vw;
       cursor: pointer;
       z-index: 10;
     }
     @media (max-width: 768px) {
       :root {
-        --cell-size: 14vw;
+        --cell-size: 12.6vw; /* Reduced from 14vw */
       }
       .score {
-        font-size: 7vw;
+        font-size: 6.5vw;
       }
       .btn, .hint, .small, .footer {
-        font-size: 4vw;
+        font-size: 3.8vw;
       }
     }
     @media (max-width: 400px) {
       :root {
-        --cell-size: 16vw;
+        --cell-size: 14.4vw; /* Reduced from 16vw */
       }
       .cell {
-        font-size: 5vw;
+        font-size: 4.5vw;
       }
     }
   </style>
@@ -209,8 +209,8 @@
   <div class="wrap">
     <button class="fullscreen-btn" id="fullscreenBtn">전체 화면</button>
     <div class="panel">
-      <div style="font-weight:800;font-size:5vw;margin-bottom:6px">Fruit Box (사과 상자)</div>
-      <div class="small" style="margin-bottom:6px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
+      <div style="font-weight:800;font-size:4.5vw;margin-bottom:5.4px">Fruit Box (사과 상자)</div>
+      <div class="small" style="margin-bottom:5.4px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
       <div id="board" class="board" draggable="false"></div>
     </div>
 
@@ -244,7 +244,7 @@
         medium: { cols: 6, rows: 6 },
         hard: { cols: 6, rows: 5 }
       };
-      let config = difficulties.medium; // Default to medium (6x6)
+      let config = difficulties.medium;
       const boardEl = document.getElementById('board');
       const scoreEl = document.getElementById('score');
       const highScoreEl = document.getElementById('highScore');
@@ -380,10 +380,10 @@
         const gameClearEl = document.createElement('div');
         gameClearEl.className = 'game-over';
         gameClearEl.innerHTML = `
-          <h2 style="font-size: 6vw; margin-bottom: 4vw;">축하합니다! 클리어!</h2>
-          <div style="font-size: 4vw;">최종 점수: ${score}</div>
-          <div style="font-size: 4vw;">최고 점수: ${highScore}</div>
-          <button class="btn success restart-game" style="margin-top: 4vw; font-size: 4vw;">다시 시작</button>
+          <h2 style="font-size: 5.4vw; margin-bottom: 3.6vw;">축하합니다! 클리어!</h2>
+          <div style="font-size: 3.6vw;">최종 점수: ${score}</div>
+          <div style="font-size: 3.6vw;">최고 점수: ${highScore}</div>
+          <button class="btn success restart-game" style="margin-top: 3.6vw; font-size: 3.6vw;">다시 시작</button>
         `;
         boardEl.appendChild(gameClearEl);
         const restartButton = gameClearEl.querySelector('.restart-game');
@@ -402,11 +402,11 @@
         const gameOverEl = document.createElement('div');
         gameOverEl.className = 'game-over';
         gameOverEl.innerHTML = `
-          <h2 style="font-size: 6vw; margin-bottom: 4vw;">게임 오버</h2>
-          <div style="font-size: 4vw;">더 이상 합이 10이 되는 선택이 없습니다.</div>
-          <div style="font-size: 4vw;">최종 점수: ${score}</div>
-          <div style="font-size: 4vw;">최고 점수: ${highScore}</div>
-          <button class="btn success restart-game" style="margin-top: 4vw; font-size: 4vw;">다시 시작</button>
+          <h2 style="font-size: 5.4vw; margin-bottom: 3.6vw;">게임 오버</h2>
+          <div style="font-size: 3.6vw;">더 이상 합이 10이 되는 선택이 없습니다.</div>
+          <div style="font-size: 3.6vw;">최종 점수: ${score}</div>
+          <div style="font-size: 3.6vw;">최고 점수: ${highScore}</div>
+          <button class="btn success restart-game" style="margin-top: 3.6vw; font-size: 3.6vw;">다시 시작</button>
         `;
         boardEl.appendChild(gameOverEl);
         const restartButton = gameOverEl.querySelector('.restart-game');
