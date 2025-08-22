@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!doctype html>
+<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
@@ -45,17 +6,17 @@
   <title>Fruit Box (사과 상자) - 모바일 버전</title>
   <style>
     :root {
-      --cell-size: 10vw; /* Dynamic cell size for mobile */
-      --gap: 4px; /* Smaller gap for mobile */
-      --cols: 7;
-      --rows: 6;
+      --cell-size: 12vw; /* Adjusted for mobile fit */
+      --gap: 3px; /* Tighter gap */
+      --cols: 6; /* Fixed columns */
+      --rows: 6; /* Default rows (medium) */
       --primary-color: #2b6df6;
       --success-color: #10b981;
     }
     * {
       box-sizing: border-box;
       font-family: Inter, Noto Sans KR, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+      -webkit-tap-highlight-color: transparent;
     }
     body {
       display: flex;
@@ -65,19 +26,20 @@
       background: #f5f7fb;
       margin: 0;
       padding: 10px;
-      overscroll-behavior: none; /* Prevent pull-to-refresh */
+      overscroll-behavior: none;
     }
     .wrap {
       width: 100%;
-      max-width: 500px; /* Cap width for larger phones */
+      max-width: 360px; /* Fits most smartphone screens */
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      position: relative; /* Anchor for fullscreen button */
     }
     .panel {
       background: #fff;
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
       box-shadow: 0 4px 16px rgba(20,30,60,0.1);
       width: 100%;
     }
@@ -86,20 +48,20 @@
       grid-template-columns: repeat(var(--cols), var(--cell-size));
       grid-auto-rows: var(--cell-size);
       gap: var(--gap);
-      padding: 6px;
+      padding: 5px;
       background: linear-gradient(180deg, #eef4ff, #fff);
       border-radius: 10px;
       position: relative;
-      touch-action: none; /* Prevent default touch actions */
+      touch-action: none;
     }
     .cell {
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
+      border-radius: 6px;
       background: linear-gradient(180deg, #fff, #f2f6ff);
       font-weight: 700;
-      font-size: 4vw; /* Responsive font size */
+      font-size: 4.5vw;
       user-select: none;
       cursor: pointer;
       box-shadow: 0 2px 0 rgba(0,0,0,0.04) inset;
@@ -114,11 +76,11 @@
       color: #8b4a00;
     }
     .cell.selected {
-      outline: 3px solid rgba(80,160,255,0.35);
+      outline: 2px solid rgba(80,160,255,0.35);
       transform: scale(1.05);
     }
     .cell.touched {
-      transform: scale(1.1); /* Visual feedback for touch */
+      transform: scale(1.1);
     }
     .cell.removing {
       animation: pop 0.18s ease forwards;
@@ -129,17 +91,17 @@
     .info {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .score {
-      font-size: 6vw; /* Responsive font size */
+      font-size: 6.5vw;
       font-weight: 800;
       color: var(--primary-color);
     }
     .meta {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
     .btn {
       padding: 8px 10px;
@@ -148,10 +110,10 @@
       background: var(--primary-color);
       color: #fff;
       font-weight: 700;
-      font-size: 3.5vw;
+      font-size: 4vw;
       cursor: pointer;
       transition: background 0.2s ease;
-      min-height: 44px; /* Ensure touch target size */
+      min-height: 48px; /* Larger touch target */
     }
     .btn:hover {
       background: #1e5de0;
@@ -168,34 +130,26 @@
     }
     .muted {
       color: #6b7280;
-      font-size: 3vw;
+      font-size: 3.5vw;
     }
     .controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
     .hint {
       background: #fff7cc;
-      padding: 8px;
+      padding: 6px;
       border-radius: 8px;
-      font-size: 3vw;
+      font-size: 3.5vw;
     }
     .footer {
-      margin-top: 8px;
-      font-size: 3vw;
+      margin-top: 6px;
+      font-size: 3.5vw;
       color: #374151;
     }
     .small {
-      font-size: 3vw;
-      color: #6b7280;
-    }
-    .difficulty-select {
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      background: #fff;
       font-size: 3.5vw;
-      width: 100%;
+      color: #6b7280;
     }
     .game-over {
       position: absolute;
@@ -219,49 +173,44 @@
       to { opacity: 1; }
     }
     .fullscreen-btn {
-      position: fixed;
+      position: absolute;
       top: 10px;
       right: 10px;
-      padding: 8px;
+      padding: 6px 8px;
       background: var(--primary-color);
       color: #fff;
-      border-radius: 8px;
-      font-size: 3vw;
+      border-radius: 6px;
+      font-size: 3.5vw;
       cursor: pointer;
+      z-index: 10;
     }
     @media (max-width: 768px) {
       :root {
-        --cell-size: 12vw; /* Slightly larger cells for smaller screens */
-      }
-      .wrap {
-        max-width: 100%;
-      }
-      .cell {
-        font-size: 5vw;
+        --cell-size: 14vw;
       }
       .score {
         font-size: 7vw;
       }
-      .btn, .difficulty-select {
+      .btn, .hint, .small, .footer {
         font-size: 4vw;
-      }
-      .hint, .small, .footer {
-        font-size: 3.5vw;
       }
     }
     @media (max-width: 400px) {
       :root {
-        --cell-size: 14vw; /* Even larger for very small screens */
+        --cell-size: 16vw;
+      }
+      .cell {
+        font-size: 5vw;
       }
     }
   </style>
 </head>
 <body>
-  <button class="fullscreen-btn" id="fullscreenBtn">전체 화면</button>
   <div class="wrap">
+    <button class="fullscreen-btn" id="fullscreenBtn">전체 화면</button>
     <div class="panel">
-      <div style="font-weight:800;font-size:5vw;margin-bottom:8px">Fruit Box (사과 상자)</div>
-      <div class="small" style="margin-bottom:8px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
+      <div style="font-weight:800;font-size:5vw;margin-bottom:6px">Fruit Box (사과 상자)</div>
+      <div class="small" style="margin-bottom:6px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
       <div id="board" class="board" draggable="false"></div>
     </div>
 
@@ -275,14 +224,6 @@
         <div id="highScore" class="score">0</div>
       </div>
       <div class="meta">
-        <div class="small">난이도</div>
-        <select id="difficulty" class="difficulty-select">
-          <option value="easy">쉬움 (8x6)</option>
-          <option value="medium" selected>보통 (7x6)</option>
-          <option value="hard">어려움 (6x5)</option>
-        </select>
-      </div>
-      <div class="meta">
         <div class="small">규칙 요약</div>
         <div class="hint">사각형 선택 → 내부 합이 <strong>10</strong>이면 제거. 터진 과일 1개당 +1점.</div>
       </div>
@@ -292,7 +233,6 @@
       </div>
       <div class="footer">
         <div class="small">모바일: 터치로 시작 지점 터치 → 끝 지점 터치</div>
-        <div style="margin-top:6px" class="small">H키로 힌트 (키보드 지원 시)</div>
       </div>
     </div>
   </div>
@@ -300,17 +240,16 @@
   <script>
     (function(){
       const difficulties = {
-        easy: { cols: 8, rows: 6 },
-        medium: { cols: 7, rows: 6 },
+        easy: { cols: 6, rows: 6 },
+        medium: { cols: 6, rows: 6 },
         hard: { cols: 6, rows: 5 }
       };
-      let config = difficulties.medium;
+      let config = difficulties.medium; // Default to medium (6x6)
       const boardEl = document.getElementById('board');
       const scoreEl = document.getElementById('score');
       const highScoreEl = document.getElementById('highScore');
       const restartBtn = document.getElementById('restartBtn');
       const hintBtn = document.getElementById('hintBtn');
-      const difficultyEl = document.getElementById('difficulty');
       const fullscreenBtn = document.getElementById('fullscreenBtn');
 
       let board = [];
@@ -616,23 +555,12 @@
 
       hintBtn.addEventListener('click', provideHint);
 
-      difficultyEl.addEventListener('change', (e) => {
-        config = difficulties[e.target.value];
-        document.documentElement.style.setProperty('--cols', config.cols);
-        document.documentElement.style.setProperty('--rows', config.rows);
-        init();
-      });
-
       fullscreenBtn.addEventListener('click', () => {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().catch(err => console.log(err));
         } else {
           document.exitFullscreen();
         }
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if(e.key.toLowerCase() === 'h') provideHint();
       });
 
       function init() {
