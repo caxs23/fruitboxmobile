@@ -95,10 +95,10 @@
     }
     .score-section {
       display: flex;
-      gap: 20px;
+      gap: 80px;
     }
     .score {
-      font-size: 5.5vw;
+      font-size: 3.5vw;
       font-weight: 800;
       color: var(--primary-color);
     }
@@ -220,7 +220,7 @@
     <button class="fullscreen-btn" id="fullscreenBtn">전체 화면</button>
     <div class="panel">
       <div style="font-weight:800;font-size:1.2rem;margin-bottom:8px">Fruit Box (사과 상자)</div>
-      <div class="small" style="margin-bottom:8px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
+      <div class="small" style="margin-bottom:8px">터치 또는 클릭으로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
       <div id="board" class="board" draggable="false"></div>
     </div>
 
@@ -253,6 +253,7 @@
       </div>
       <div class="footer">
         <div class="small">모바일: 터치로 시작 지점 터치 → 끝 지점 터치</div>
+        <div class="small">데스크톱: 클릭 후 드래그</div>
         <div style="margin-top:6px" class="small">H키로 힌트 (키보드 지원 시)</div>
       </div>
     </div>
@@ -263,7 +264,7 @@
       const difficulties = {
         easy: { cols: 6, rows: 6 },
         medium: { cols: 6, rows: 5 },
-        hard: { cols: 6, rows: 4 }
+        hard: { cols: 6, rows: 5 }
       };
       let config = difficulties.medium;
       const boardEl = document.getElementById('board');
@@ -471,7 +472,7 @@
 
       function removeSelection(s, e) {
         const info = computeSelectionSum(s, e);
-        console.log(`Selection: [${s.r},${s.c}] to [${e.r},${e.c}], Sum: ${info.sum}, Count: ${info.count}`); // Debug log
+        console.log(`Selection: [${s.r},${s.c}] to [${e.r},${e.c}], Sum: ${info.sum}, Count: ${info.count}`);
         if(info.sum !== 10 || info.count === 0) {
           console.log('Invalid selection: sum not 10 or no cells selected');
           return false;
@@ -535,6 +536,7 @@
         }
       }
 
+      // Touch events
       boardEl.addEventListener('touchstart', (ev) => {
         ev.preventDefault();
         const touch = ev.touches[0];
@@ -554,7 +556,7 @@
         const touch = ev.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         const cell = target && target.closest('.cell') ? { r: parseInt(target.dataset.r, 10), c: parseInt(target.dataset.c, 10), el: target } : null;
-        if(!cell) return; // Keep last valid selEnd
+        if(!cell) return;
         selEnd = { r: cell.r, c: cell.c };
         cells.forEach(x => x.classList.remove('touched'));
         cell.el.classList.add('touched');
@@ -571,14 +573,55 @@
         if(selStart && selEnd) {
           const ok = removeSelection(selStart, selEnd);
           if(!ok) {
-            console.log('Selection failed to remove');
+            console.log('Touch selection failed to remove');
             cells.forEach(x => x.classList.remove('selected', 'touched'));
           }
         } else {
-          console.log('Invalid selection: selStart or selEnd missing');
+          console.log('Touch selection invalid: selStart or selEnd missing');
           cells.forEach(x => x.classList.remove('selected', 'touched'));
         }
       }, { passive: false });
+
+      // Mouse events
+      boardEl.addEventListener('mousedown', (ev) => {
+        ev.preventDefault();
+        const cell = getCellFromEvent(ev);
+        if(!cell) return;
+        selecting = true;
+        selStart = { r: cell.r, c: cell.c };
+        selEnd = { r: cell.r, c: cell.c };
+        cell.el.classList.add('touched');
+        setSelection(selStart, selEnd);
+        console.log(`Mouse down: [${selStart.r},${selStart.c}]`);
+      });
+
+      boardEl.addEventListener('mousemove', (ev) => {
+        if(!selecting) return;
+        const cell = getCellFromEvent(ev);
+        if(!cell) return;
+        selEnd = { r: cell.r, c: cell.c };
+        cells.forEach(x => x.classList.remove('touched'));
+        cell.el.classList.add('touched');
+        setSelection(selStart, selEnd);
+        console.log(`Mouse move: [${selEnd.r},${selEnd.c}]`);
+      });
+
+      boardEl.addEventListener('mouseup', (ev) => {
+        if(!selecting) return;
+        selecting = false;
+        const cell = getCellFromEvent(ev);
+        if(cell) selEnd = { r: cell.r, c: cell.c };
+        if(selStart && selEnd) {
+          const ok = removeSelection(selStart, selEnd);
+          if(!ok) {
+            console.log('Mouse selection failed to remove');
+            cells.forEach(x => x.classList.remove('selected', 'touched'));
+          }
+        } else {
+          console.log('Mouse selection invalid: selStart or selEnd missing');
+          cells.forEach(x => x.classList.remove('selected', 'touched'));
+        }
+      });
 
       restartBtn.addEventListener('click', init);
 
