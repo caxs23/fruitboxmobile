@@ -6,9 +6,9 @@
   <title>Fruit Box (사과 상자) - 모바일 버전</title>
   <style>
     :root {
-      --cell-size: 11.5vw; /* Adjusted for 6 columns within same width */
+      --cell-size: 11.5vw;
       --gap: 3px;
-      --cols: 6; /* Fixed to 6 columns */
+      --cols: 6;
       --rows: 6;
       --primary-color: #2b6df6;
       --success-color: #10b981;
@@ -198,7 +198,7 @@
     }
     @media (max-width: 400px) {
       :root {
-        --cell-size: 13.5vw; /* Adjusted for smaller screens */
+        --cell-size: 13.5vw;
       }
       .cell {
         font-size: 4.5vw;
@@ -430,7 +430,7 @@
           <button class="btn success restart-game" style="margin-top: 0.5rem; font-size: 0.95rem;">다시 시작</button>
         `;
         boardEl.appendChild(gameOverEl);
-        const restartButton = gameClearEl.querySelector('.restart-game');
+        const restartButton = gameOverEl.querySelector('.restart-game');
         restartButton.addEventListener('click', () => {
           gameOverEl.remove();
           init();
@@ -463,7 +463,7 @@
           for(let c = c1; c <= c2; c++) {
             const val = board[r][c] || 0;
             sum += val;
-            if(val) count++;
+            if(board[r][c]) count++;
           }
         }
         return { sum, count, r1, r2, c1, c2 };
@@ -471,9 +471,13 @@
 
       function removeSelection(s, e) {
         const info = computeSelectionSum(s, e);
-        if(info.sum !== 10) return false;
+        console.log(`Selection: [${s.r},${s.c}] to [${e.r},${e.c}], Sum: ${info.sum}, Count: ${info.count}`); // Debug log
+        if(info.sum !== 10 || info.count === 0) {
+          console.log('Invalid selection: sum not 10 or no cells selected');
+          return false;
+        }
         for(let r = info.r1; r <= info.r2; r++) {
-          for(let c = info.c1; c <= c2; c++) {
+          for(let c = info.c1; c <= info.c2; c++) {
             board[r][c] = 0;
             const el = cells[r * config.cols + c];
             el.classList.add('removing');
@@ -550,7 +554,7 @@
         const touch = ev.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         const cell = target && target.closest('.cell') ? { r: parseInt(target.dataset.r, 10), c: parseInt(target.dataset.c, 10), el: target } : null;
-        if(!cell) return;
+        if(!cell) return; // Keep last valid selEnd
         selEnd = { r: cell.r, c: cell.c };
         cells.forEach(x => x.classList.remove('touched'));
         cell.el.classList.add('touched');
@@ -566,8 +570,12 @@
         if(cell) selEnd = { r: cell.r, c: cell.c };
         if(selStart && selEnd) {
           const ok = removeSelection(selStart, selEnd);
-          if(!ok) cells.forEach(x => x.classList.remove('selected', 'touched'));
+          if(!ok) {
+            console.log('Selection failed to remove');
+            cells.forEach(x => x.classList.remove('selected', 'touched'));
+          }
         } else {
+          console.log('Invalid selection: selStart or selEnd missing');
           cells.forEach(x => x.classList.remove('selected', 'touched'));
         }
       }, { passive: false });
