@@ -6,8 +6,8 @@
   <title>Fruit Box (사과 상자) - 모바일 버전</title>
   <style>
     :root {
-      --cell-size: 10.8vw; /* Reduced by ~10% from 12vw */
-      --gap: 2.7px; /* Reduced by ~10% from 3px */
+      --cell-size: 9.5vw; /* Reduced from 10.8vw */
+      --gap: 2.4px; /* Reduced from 2.7px */
       --cols: 6;
       --rows: 6;
       --primary-color: #2b6df6;
@@ -25,22 +25,22 @@
       min-height: 100vh;
       background: #f5f7fb;
       margin: 0;
-      padding: 9px;
+      padding: 8px;
       overscroll-behavior: none;
     }
     .wrap {
       width: 100%;
-      max-width: 324px; /* Reduced by ~10% from 360px */
+      max-width: 280px; /* Reduced from 324px */
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 8px;
       position: relative;
     }
     .panel {
       background: #fff;
-      border-radius: 10px;
-      padding: 9px;
-      box-shadow: 0 4px 16px rgba(20,30,60,0.1);
+      border-radius: 9px;
+      padding: 8px;
+      box-shadow: 0 3px 12px rgba(20,30,60,0.1);
       width: 100%;
     }
     .board {
@@ -48,9 +48,9 @@
       grid-template-columns: repeat(var(--cols), var(--cell-size));
       grid-auto-rows: var(--cell-size);
       gap: var(--gap);
-      padding: 4.5px;
+      padding: 4px;
       background: linear-gradient(180deg, #eef4ff, #fff);
-      border-radius: 9px;
+      border-radius: 8px;
       position: relative;
       touch-action: none;
     }
@@ -58,13 +58,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 5.4px;
+      border-radius: 4.8px;
       background: linear-gradient(180deg, #fff, #f2f6ff);
       font-weight: 700;
-      font-size: 4vw;
+      font-size: 3.8vw;
       user-select: none;
       cursor: pointer;
-      box-shadow: 0 1.8px 0 rgba(0,0,0,0.04) inset;
+      box-shadow: 0 1.6px 0 rgba(0,0,0,0.04) inset;
       transition: transform 0.12s ease, background 0.2s ease;
     }
     .cell.fruit {
@@ -76,7 +76,7 @@
       color: #8b4a00;
     }
     .cell.selected {
-      outline: 1.8px solid rgba(80,160,255,0.35);
+      outline: 1.6px solid rgba(80,160,255,0.35);
       transform: scale(1.05);
     }
     .cell.touched {
@@ -90,27 +90,32 @@
     }
     .info {
       display: flex;
-      flex-direction: column;
-      gap: 5.4px;
+      flex-direction: row; /* Changed to horizontal */
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .score-box {
+      flex: 1;
+      min-width: 100px; /* Ensure readability */
     }
     .score {
-      font-size: 6vw;
+      font-size: 5.5vw;
       font-weight: 800;
       color: var(--primary-color);
     }
     .meta {
       display: flex;
       flex-direction: column;
-      gap: 4.5px;
+      gap: 4px;
     }
     .btn {
-      padding: 7.2px 9px;
-      border-radius: 7.2px;
+      padding: 6.4px 8px;
+      border-radius: 6.4px;
       border: 0;
       background: var(--primary-color);
       color: #fff;
       font-weight: 700;
-      font-size: 3.8vw;
+      font-size: 3.5vw;
       cursor: pointer;
       transition: background 0.2s ease;
       min-height: 48px;
@@ -130,25 +135,25 @@
     }
     .muted {
       color: #6b7280;
-      font-size: 3.2vw;
+      font-size: 3vw;
     }
     .controls {
       display: flex;
-      gap: 5.4px;
+      gap: 4.8px;
     }
     .hint {
       background: #fff7cc;
-      padding: 5.4px;
-      border-radius: 7.2px;
-      font-size: 3.2vw;
+      padding: 4.8px;
+      border-radius: 6.4px;
+      font-size: 3vw;
     }
     .footer {
-      margin-top: 5.4px;
-      font-size: 3.2vw;
+      margin-top: 4.8px;
+      font-size: 3vw;
       color: #374151;
     }
     .small {
-      font-size: 3.2vw;
+      font-size: 3vw;
       color: #6b7280;
     }
     .game-over {
@@ -163,9 +168,9 @@
       justify-content: center;
       flex-direction: column;
       color: #fff;
-      border-radius: 9px;
+      border-radius: 8px;
       animation: fadeIn 0.3s ease;
-      padding: 9px;
+      padding: 8px;
       text-align: center;
     }
     @keyframes fadeIn {
@@ -174,33 +179,33 @@
     }
     .fullscreen-btn {
       position: absolute;
-      top: 9px;
-      right: 9px;
-      padding: 5.4px 7.2px;
+      top: 8px;
+      right: 8px;
+      padding: 4.8px 6.4px;
       background: var(--primary-color);
       color: #fff;
-      border-radius: 5.4px;
-      font-size: 3.2vw;
+      border-radius: 4.8px;
+      font-size: 3vw;
       cursor: pointer;
       z-index: 10;
     }
     @media (max-width: 768px) {
       :root {
-        --cell-size: 12.6vw; /* Reduced from 14vw */
+        --cell-size: 11vw; /* Reduced from 12.6vw */
       }
       .score {
-        font-size: 6.5vw;
+        font-size: 6vw;
       }
       .btn, .hint, .small, .footer {
-        font-size: 3.8vw;
+        font-size: 3.5vw;
       }
     }
     @media (max-width: 400px) {
       :root {
-        --cell-size: 14.4vw; /* Reduced from 16vw */
+        --cell-size: 12.5vw; /* Reduced from 14.4vw */
       }
       .cell {
-        font-size: 4.5vw;
+        font-size: 4.2vw;
       }
     }
   </style>
@@ -209,17 +214,17 @@
   <div class="wrap">
     <button class="fullscreen-btn" id="fullscreenBtn">전체 화면</button>
     <div class="panel">
-      <div style="font-weight:800;font-size:4.5vw;margin-bottom:5.4px">Fruit Box (사과 상자)</div>
-      <div class="small" style="margin-bottom:5.4px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
+      <div style="font-weight:800;font-size:4vw;margin-bottom:4.8px">Fruit Box (사과 상자)</div>
+      <div class="small" style="margin-bottom:4.8px">터치로 사각형을 만들고 합이 <strong>10</strong>이면 제거됩니다. 모든 칸을 지우면 클리어! 더 이상 합이 10이 안 되면 게임 오버.</div>
       <div id="board" class="board" draggable="false"></div>
     </div>
 
     <div class="panel info">
-      <div>
+      <div class="score-box">
         <div class="small">점수</div>
         <div id="score" class="score">0</div>
       </div>
-      <div>
+      <div class="score-box">
         <div class="small">최고 점수</div>
         <div id="highScore" class="score">0</div>
       </div>
@@ -302,9 +307,9 @@
       function randWeighted() {
         const rand = Math.random();
         if (rand < 0.7) {
-          return Math.floor(Math.random() * 4) + 1; // 1-4
+          return Math.floor(Math.random() * 4) + 1;
         } else {
-          return Math.floor(Math.random() * 5) + 5; // 5-9
+          return Math.floor(Math.random() * 5) + 5;
         }
       }
 
@@ -452,7 +457,7 @@
         const info = computeSelectionSum(s, e);
         if(info.sum !== 10) return false;
         for(let r = info.r1; r <= info.r2; r++) {
-          for(let c = info.c1; c <= info.c2; c++) {
+          for(let c = info.c1; c <= c2; c++) {
             board[r][c] = 0;
             const el = cells[r * config.cols + c];
             el.classList.add('removing');
