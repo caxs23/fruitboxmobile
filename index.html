@@ -9,7 +9,7 @@
       --cell-size: 11.5vw;
       --gap: 3px;
       --cols: 6;
-      --rows: 6;
+      --rows: 7; /* Updated to max rows for easy mode */
       --primary-color: #2b6df6;
       --success-color: #10b981;
     }
@@ -186,13 +186,13 @@
     }
     .fullscreen-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      padding: 4px 6px;
+      top: 10px;
+      right: 10px;
+      padding: 6px 10px;
       background: var(--primary-color);
       color: #fff;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       cursor: pointer;
       z-index: 10;
     }
@@ -431,6 +431,11 @@
           gameClearEl.remove();
           init();
         });
+        restartButton.addEventListener('touchend', (ev) => {
+          ev.preventDefault();
+          gameClearEl.remove();
+          init();
+        }, { passive: false });
       }
 
       function showGameOver() {
@@ -454,6 +459,11 @@
           gameOverEl.remove();
           init();
         });
+        restartButton.addEventListener('touchend', (ev) => {
+          ev.preventDefault();
+          gameOverEl.remove();
+          init();
+        }, { passive: false });
       }
 
       function getCellFromEvent(e) {
