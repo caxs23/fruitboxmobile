@@ -364,7 +364,9 @@
               if(val >= 7) div.classList.add('orange');
               div.textContent = val;
             } else {
-              div.style.visibility = 'hidden';
+              div.style.background = 'transparent';
+              div.style.boxShadow = 'none';
+              div.style.borderRadius = '0';
             }
             div.dataset.r = r;
             div.dataset.c = c;
